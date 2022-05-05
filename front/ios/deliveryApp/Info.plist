@@ -49,7 +49,10 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<key>UIViewControllerBasedStatusBarAppearance</key>	
+
+	<key>NMFClientId</key>
+	<string>bpc9djcyer</string>
 	<false/>
 </dict>
 </plist>
