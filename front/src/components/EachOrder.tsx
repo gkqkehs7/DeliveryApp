@@ -1,25 +1,31 @@
-import {NavigationProp, useNavigation} from '@react-navigation/native';
-import axios, {AxiosError} from 'axios';
+import {
+  Alert,
+  Dimensions,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import React, {useCallback, useState} from 'react';
-import {View, Text, Pressable, FlatList, StyleSheet, Alert} from 'react-native';
-import Config from 'react-native-config';
-import {useSelector} from 'react-redux';
-import {LoggedInParamList} from '../../AppInner';
 import orderSlice, {Order} from '../slices/order';
 import {useAppDispatch} from '../store';
+import getDistanceFromLatLonInKm from '../util';
+import axios, {AxiosError} from 'axios';
+import {useSelector} from 'react-redux';
 import {RootState} from '../store/reducer';
+import Config from 'react-native-config';
+import {NavigationProp, useNavigation} from '@react-navigation/native';
+import {LoggedInParamList} from '../../AppInner';
+import NaverMapView, {Marker, Path} from 'react-native-nmap';
 
-function EachOrder({item}: {item: Order}) {
-  //react-navigation hook쓰면 props-drilling안해도 되지만 타입추론이 안되기 때문에 타입명시해주어야한다
-  //navigation 쓰려면 부모안 order로 부터 받아와야한다
+interface Props {
+  item: Order;
+}
+function EachOrder({item}: Props) {
   const navigation = useNavigation<NavigationProp<LoggedInParamList>>();
   const dispatch = useAppDispatch();
   const accessToken = useSelector((state: RootState) => state.user.accessToken);
-  const [detail, setDetail] = useState(false);
-
-  const toggleDetail = useCallback(() => {
-    setDetail(prev => !prev);
-  }, []);
+  const [detail, showDetail] = useState(false);
 
   const onAccept = useCallback(async () => {
     if (!accessToken) {
@@ -46,17 +52,65 @@ function EachOrder({item}: {item: Order}) {
   const onReject = useCallback(() => {
     dispatch(orderSlice.actions.rejectOrder(item.orderId));
   }, [dispatch, item]);
+  const {start, end} = item;
+
+  const toggleDetail = useCallback(() => {
+    showDetail(prevState => !prevState);
+  }, []);
+
   return (
-    <View key={item.orderId} style={styles.orderContainer}>
+    <View style={styles.orderContainer}>
       <Pressable onPress={toggleDetail} style={styles.info}>
         <Text style={styles.eachInfo}>
           {item.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}원
         </Text>
+        <Text style={styles.eachInfo}>
+          {getDistanceFromLatLonInKm(
+            start.latitude,
+            start.longitude,
+            end.latitude,
+            end.longitude,
+          ).toFixed(1)}
+          km
+        </Text>
       </Pressable>
       {detail && (
         <View>
-          <View>
-            <Text>네이버맵이 들어갈 장소</Text>
+          <View
+            style={{
+              width: Dimensions.get('window').width - 30,
+              height: 200,
+              marginTop: 10,
+            }}>
+            <NaverMapView
+              style={{width: '100%', height: '100%'}}
+              zoomControl={false}
+              center={{
+                zoom: 10,
+                tilt: 50,
+                latitude: (start.latitude + end.latitude) / 2,
+                longitude: (start.longitude + end.longitude) / 2,
+              }}>
+              <Marker
+                coordinate={{
+                  latitude: start.latitude,
+                  longitude: start.longitude,
+                }}
+                pinColor="blue"
+              />
+              <Path
+                coordinates={[
+                  {
+                    latitude: start.latitude,
+                    longitude: start.longitude,
+                  },
+                  {latitude: end.latitude, longitude: end.longitude},
+                ]}
+              />
+              <Marker
+                coordinate={{latitude: end.latitude, longitude: end.longitude}}
+              />
+            </NaverMapView>
           </View>
           <View style={styles.buttonWrapper}>
             <Pressable onPress={onAccept} style={styles.acceptButton}>
@@ -110,4 +164,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
 export default EachOrder;

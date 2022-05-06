@@ -77,7 +77,7 @@ function SignUp({navigation}: SignUpScreenProps) {
       console.log('주소:', Config.API_URL);
       const errorResponse = (error as AxiosError).response;
       console.error(errorResponse);
-      console.error('에러다1');
+
       if (errorResponse) {
         console.error('에러다2');
         Alert.alert('알림', errorResponse.data.message);
