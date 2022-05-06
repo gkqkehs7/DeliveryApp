@@ -1,4 +1,4 @@
-package com.deliveryapp;
+package com.minuminu.deliveryapp;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
