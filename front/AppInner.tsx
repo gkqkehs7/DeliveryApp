@@ -17,6 +17,7 @@ import userSlice from './src/slices/user';
 import {useAppDispatch} from './src/store';
 import Config from 'react-native-config';
 import orderSlice from './src/slices/order';
+import usePermissions from './src/hooks/usePermissions';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -37,6 +38,7 @@ function AppInner() {
   const isLoggedIn = useSelector((state: RootState) => !!state.user.email);
   const [socket, disconnect] = useSocket();
 
+  usePermissions();
   useEffect(() => {
     //useEffect는 async가 안댐
     const getTokenAndRefresh = async () => {
